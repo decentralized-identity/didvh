@@ -1,0 +1,26 @@
+{
+  "name": "didvh",
+  "version": "0.1.0",
+  "description": "did:vh DID Method specification (DID + Verifiable History)",
+  "type": "module",
+  "scripts": {
+    "render": "node render.mjs",
+    "edit": "node edit.mjs"
+  },
+  "keywords": [
+    "did:vh",
+    "DID",
+    "verifiable history",
+    "VH-Log",
+    "spec"
+  ],
+  "author": "Stephen Curran",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/decentralized-identity/didvh/issues"
+  },
+  "homepage": "https://github.com/decentralized-identity/didvh",
+  "dependencies": {
+    "spec-up": "^0.11.6"
+  }
+}
