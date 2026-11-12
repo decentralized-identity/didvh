@@ -17,6 +17,10 @@ The `did:vh` DID Method<br>v0.1 / Editors Draft
 ~ [Commit history](https://github.com/decentralized-identity/didvh/commits/main)
 
 **Related Specifications:**
-~ [did:webvh](https://identity.foundation/didwebvh/) — the web-located DID method `did:vh` is derived from
+~ [did:webvh](https://identity.foundation/didwebvh/) — the web-located DID method from which `did:vh` is derived.
+
+**IPR Status**
+
+This document was produced by a group operating under the [W3C Patent Policy](https://www.w3.org/policies/patent-policy/). An individual who has actual knowledge of a patent that the individual believes contains [Essential Claim(s)](https://www.w3.org/policies/patent-policy/#def-essential) must disclose the information in accordance with [section 6 of the W3C Patent Policy](https://www.w3.org/policies/patent-policy/#sec-Disclosure).
 
 ------------------------------------
