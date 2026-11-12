@@ -1,0 +1,310 @@
+openapi: 3.0.3
+info:
+  title: did:vh Watcher OpenAPI Definition
+  description: |-
+    This is the did:vh watcher API definition. As per the did:vh specification, a did:vh
+    watcher whose URL is an HTTP(S) URL MUST implement at least this API.
+
+    It is derived from the did:webvh Watcher OpenAPI Definition
+    (https://github.com/decentralized-identity/didwebvh/blob/main/watcherOpenAPI/watcher-v1.0.0.yml).
+    A did:vh DID carries no web location, so the notification operations differ:
+
+    - `POST /log` takes a DID URL with a `src` query parameter, from which the watcher
+      retrieves the files, or a bare DID with the complete DID Log as the request body.
+    - `POST /witness` sends the witness proofs file for a DID with no `src` parameter,
+      before the `POST /log` notification.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  version: 1.0.0
+externalDocs:
+  description: The did:vh DID Method specification
+  url: https://identity.foundation/didvh/
+servers: []
+tags:
+  - name: log
+    description: did:vh DID Log related operations
+  - name: witness
+    description: did:vh witness proofs file related operations
+  - name: resource
+    description: did:vh DID Resource related operations
+paths:
+  /log:
+    get:
+      tags:
+        - log
+      summary: Return the latest DID Log for the DID with the given SCID
+      parameters:
+        - $ref: '#/components/parameters/SCID'
+      responses:
+        '200':
+          description: successful operation
+          content:
+            text/jsonl:
+              schema:
+                $ref: '#/components/schemas/LogFile'
+        '400':
+          description: Invalid SCID value
+        '404':
+          description: Unknown SCID value
+    post:
+      tags:
+        - log
+      summary: Notify the did:vh watcher that a DID has been updated
+      description: |-
+        If the `did` value is a DID URL with a `src` query parameter, the watcher retrieves
+        `did.jsonl` (and, if witnesses are active, `did-witness.json`) from the location `src`
+        names, as defined in the did:vh specification ("The `src` DID URL Parameter"). The
+        `src` value cannot be a `file:` or loopback `http` URL. No request body is sent.
+
+        If the `did` value is a bare DID, the request body MUST be the complete DID Log. If
+        witnesses are active, the witness proofs file MUST first be sent with `POST /witness`.
+
+        In both cases the watcher MUST fully verify the DID Log, MUST confirm that it extends
+        any copy the watcher already holds, and indexes it by SCID.
+      parameters:
+        - $ref: '#/components/parameters/DIDOrDIDURL'
+      requestBody:
+        required: false
+        description: The complete DID Log. Required when `did` has no `src` parameter.
+        content:
+          text/jsonl:
+            schema:
+              $ref: '#/components/schemas/LogFile'
+      responses:
+        '202':
+          description: Request received
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmptyResponse'
+        '400':
+          description: Invalid input
+        '422':
+          description: Validation exception
+  /log/delete:
+    post:
+      tags:
+        - log
+      summary: Request deletion of the cached did:vh DID
+      parameters:
+        - $ref: '#/components/parameters/SCID'
+      requestBody:
+        $ref: '#/components/requestBodies/VerifiablePresentation'
+      responses:
+        '202':
+          description: Request received
+        '400':
+          description: Invalid SCID value
+        '404':
+          description: Unknown SCID value
+  /witness:
+    get:
+      tags:
+        - witness
+      summary: Return the latest witness proofs file for the DID with the given SCID
+      parameters:
+        - $ref: '#/components/parameters/SCID'
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WitnessFile'
+        '400':
+          description: Invalid SCID value
+        '404':
+          description: Unknown SCID value
+    post:
+      tags:
+        - witness
+      summary: Send the witness proofs file for a DID
+      description: |-
+        Used when notifying the watcher of a DID with no `src` parameter. If witnesses are
+        active, the DID Controller MUST send the witness proofs file with this operation
+        before the corresponding `POST /log` notification.
+      parameters:
+        - $ref: '#/components/parameters/DID'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WitnessFile'
+      responses:
+        '202':
+          description: Request received
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmptyResponse'
+        '400':
+          description: Invalid input
+        '422':
+          description: Validation exception
+  /resource:
+    get:
+      tags:
+        - resource
+      summary: Return resource
+      parameters:
+        - $ref: '#/components/parameters/SCID'
+        - $ref: '#/components/parameters/resourcePath'
+      responses:
+        '200':
+          description: successful operation
+        '400':
+          description: Invalid SCID value
+        '404':
+          description: Unknown SCID value or resource not found
+    post:
+      tags:
+        - resource
+      summary: Notify a new resource is available
+      parameters:
+        - $ref: '#/components/parameters/SCID'
+        - $ref: '#/components/parameters/resourcePath'
+      requestBody:
+        $ref: '#/components/requestBodies/VerifiablePresentation'
+      responses:
+        '202':
+          description: Request received
+        '400':
+          description: Invalid input
+        '404':
+          description: Unknown SCID value
+        '422':
+          description: Validation exception
+  /resource/delete:
+    post:
+      tags:
+        - resource
+      summary: Request deletion of a cached resource
+      parameters:
+        - $ref: '#/components/parameters/SCID'
+        - $ref: '#/components/parameters/resourcePath'
+      requestBody:
+        $ref: '#/components/requestBodies/VerifiablePresentation'
+      responses:
+        '202':
+          description: Request received
+        '400':
+          description: Invalid SCID value
+        '404':
+          description: Unknown SCID value or resource not found
+components:
+  schemas:
+    EmptyResponse:
+      type: object
+    DataIntegrityProof:
+      type: object
+      properties:
+        type:
+          type: string
+          example: 'DataIntegrityProof'
+        cryptosuite:
+          type: string
+          example: 'eddsa-jcs-2022'
+        verificationMethod:
+          type: string
+        proofValue:
+          type: string
+        proofPurpose:
+          type: string
+          example: 'assertionMethod'
+    VerifiablePresentation:
+      type: object
+      properties:
+        '@context':
+          type: array
+          items:
+            type: string
+          example:
+            - 'https://www.w3.org/ns/credentials/v2'
+        type:
+          type: string
+          example: 'VerifiablePresentation'
+        proof:
+          type: object
+          properties:
+            type:
+              type: string
+              example: 'DataIntegrityProof'
+            cryptosuite:
+              type: string
+              example: 'eddsa-jcs-2022'
+            verificationMethod:
+              type: string
+              example: 'did:key:{updateKey}'
+            proofPurpose:
+              type: string
+              example: 'authentication'
+            proofValue:
+              type: string
+            challenge:
+              type: string
+              example: "{SCID}"
+            domain:
+              type: string
+              example: 'https://watcher.example.com'
+    WitnessEntry:
+      type: object
+      properties:
+        versionId:
+          type: string
+        proof:
+          type: array
+          items:
+            $ref: '#/components/schemas/DataIntegrityProof'
+    WitnessFile:
+      type: array
+      description: The witness proofs file (`did-witness.json`), as defined in the did:vh specification.
+      items:
+        $ref: '#/components/schemas/WitnessEntry'
+    LogFile:
+      type: string
+      description: The DID Log contains a list of entries, one for each version of the DID. Each entry has (per the JSON Lines specification) all extra whitespace removed, a \n character appended, and the result added to the DID Log.
+      example: |
+          {"versionId":"","versionTime":"","parameters":{},"state":{},"proof":[]}
+          {"versionId":"","versionTime":"","parameters":{},"state":{},"proof":[]}
+          {"versionId":"","versionTime":"","parameters":{},"state":{},"proof":[]}
+  parameters:
+    SCID:
+      name: scid
+      in: query
+      description: The SCID of the DID
+      required: true
+      schema:
+        type: string
+    DID:
+      name: did
+      in: query
+      description: A did:vh DID (`did:vh:<SCID>`), percent-encoded as a query parameter value
+      required: true
+      schema:
+        type: string
+    DIDOrDIDURL:
+      name: did
+      in: query
+      description: |-
+        A did:vh DID, or a did:vh DID URL with a `src` query parameter
+        (for example, `did:vh:<SCID>?src=https://example.com/dids/issuer`),
+        percent-encoded as a query parameter value
+      required: true
+      schema:
+        type: string
+    resourcePath:
+      name: path
+      in: query
+      description: Resource Path, this value needs to be url encoded.
+      required: true
+      schema:
+        type: string
+  requestBodies:
+    VerifiablePresentation:
+      description: A DataIntegrityProof used for Authentication
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/VerifiablePresentation'
