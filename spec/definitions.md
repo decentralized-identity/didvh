@@ -6,7 +6,7 @@
 encoding. Used in `did:vh` for encoding hashes for [[ref: SCIDs]] and
 [[ref: entry hashes]]. `did:vh` uses the plain base58btc encoding, without a
 [[ref: multibase]] prefix, for [[ref: SCIDs]], [[ref: entry hashes]] and
-`nextKeyHashes` values: for example, a SHA-256 [[ref: multihash]] encodes to a
+`prerotationHashes` values: for example, a SHA-256 [[ref: multihash]] encodes to a
 string beginning `Qm`, not `zQm`.
 
 [[def: Data Integrity]]
@@ -113,7 +113,7 @@ for handling streaming JSON data or log files.
 ~ A specification for encoding binary data as a string using a prefix that
 indicates the encoding.
 
-[[def: multikey]]
+[[def: multikey, multikeys]]
 
 ~ A verification method that encodes key types into a single binary stream
 that is then encoded as a [[ref: multibase]] value.
@@ -142,7 +142,10 @@ lasting identifiers -- decades.
 ~ A technique for a controller of a cryptographic key to commit to the public
 key it will rotate to next, without exposing that actual public key. It
 protects from an attacker that gains knowledge of the current private key from
-being able to rotate to a new key known only to the attacker.
+being able to rotate to a new key known only to the attacker. `did:vh`
+requires pre-rotation: each [[ref: log entry]] commits, in its
+`prerotationHashes` [[ref: parameter]], to the keys that can sign the next
+entry.
 
 [[def: Resolver, Resolvers]]
 
@@ -158,6 +161,12 @@ not create a new object with the same identifier. The input for a `did:vh`
 SCID is the initial [[ref: DID log entry]] with the placeholder `{SCID}`
 wherever the SCID is to be placed. A `did:vh` DID is `did:vh:` followed by its
 SCID.
+
+[[def: used key, used keys]]
+
+~ A key that can no longer authorize a [[ref: log entry]]: a key in the first
+entry's `updateKeys`, or a key that signed a later entry. See [Authorized
+Keys](#authorized-keys).
 
 [[def: Verifiable Credential, Verifiable Credentials]]
 

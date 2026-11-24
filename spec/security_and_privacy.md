@@ -56,8 +56,10 @@ The resulting threats, and their mitigations, are:
   the web location is a second factor an attacker who steals the update keys
   also needs in order to publish. A `did:vh` log has no such location, so an
   attacker with the update keys can distribute a valid update through any
-  source. Mitigation: [[ref: DID Controllers]] are expected to use
-  [[ref: pre-rotation]] (see [Authorized Keys](#authorized-keys)), and to use
+  source. Mitigation: `did:vh` requires [[ref: pre-rotation]] (see
+  [Authorized Keys](#authorized-keys)), so the key that signs each entry is
+  revealed only when it is used and cannot sign again, and
+  [[ref: DID Controllers]] are expected to use
   [[ref: witnesses]] for DIDs relied on by many parties, so that an update
   also needs the approval of a threshold of [[ref: witnesses]] (see [DID
   Witnesses](#did-witnesses)).
@@ -246,11 +248,13 @@ Residual risks include:
     it does not compromise the integrity of the log entries themselves, nor
     the verifiability of the DID.
 - Compromise of [[ref: DID Controller]] private keys.
-  - A [[ref: DID Controller]] can mitigate this risk through the use of
-    [pre-rotation keys](#pre-rotation-key-hash-generation-and-verification),
-    treating each revealed pre-rotation key as spent and never reusing it.
-    Reuse of a revealed key is not invalid, but it reduces the containment
-    that pre-rotation provides.
+  - [Pre-rotation keys](#pre-rotation-key-hash-generation-and-verification)
+    limit this risk: a compromised key that has already signed an entry
+    cannot sign another, and a key committed in `prerotationHashes` but not
+    yet used is not revealed. A [[ref: DID Controller]] can also commit the
+    hash of a recovery key, held in cold storage, in each entry's
+    `prerotationHashes`, so that it can regain control if the keys it
+    intended to use next are lost or compromised.
   - Other good security practices also help, such as using hardware security
     modules (HSMs) or secure enclaves for key storage, enforcing strong access
     controls, maintaining secure backups of critical keys, and performing
@@ -269,7 +273,9 @@ Residual risks include:
 All DID operations (create, update, deactivate) are integrity-protected by the
 cryptographic verification of [[ref: DID Log entries]]. Update authentication
 is provided by verifying the [[ref: DID Controller]]'s proof(s) against the
-active `updateKeys` in the DID [[ref: parameters]] (see [Authorized
+keys authorized for the entry: the first entry's `updateKeys`, or a
+[[ref: pre-rotation]] key committed in the previous entry's
+`prerotationHashes` that has not signed an earlier entry (see [Authorized
 Keys](#authorized-keys)).
 
 Because a `did:vh` [[ref: DID Log]] and its entries are self-certifying, they
@@ -282,7 +288,8 @@ transport channel.
 ### Authentication Characteristics
 
 The authentication of DID updates is based on possession of the private keys
-associated with the update and pre-rotation keys. The security of the DID
+associated with the keys in the first entry's `updateKeys` and the
+[[ref: pre-rotation]] keys committed in `prerotationHashes`. The security of the DID
 therefore depends on the strength of these keys, their secure storage, and the
 cryptographic algorithms used.
 
@@ -343,7 +350,8 @@ the `Access-Control-Allow-Origin: *` header for this reason.
 ### Post Quantum Attacks
 
 The `did:vh` [[ref: Key Pre-Rotation]] approach provides enough flexibility
-for "post-quantum safety." For guidance on mitigating post-quantum attacks,
+for "post-quantum safety": each key is revealed only when it signs an entry,
+and cannot sign another. For guidance on mitigating post-quantum attacks,
 implementers are advised to consult the [corresponding `did:webvh`
 Implementation Guide
 section](https://didwebvh.info/latest/implementers-guide/prerotation-keys/#post-quantum-attacks),
