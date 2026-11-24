@@ -39,9 +39,9 @@ is the authentic history of the DID, wherever it came from.
   of updates to the [[ref: DIDDoc]], from creation to deactivation.
 - [[ref: DIDDoc]] updates containing a proof signed by a
   [[ref: DID Controller]]-authorized key.
-- An optional mechanism for publishing "pre-rotation" key hashes to prevent
-  the loss of control of a DID in cases where an active private key is
-  compromised.
+- Required "pre-rotation": each update commits to hashes of the keys that
+  can sign the next update, preventing the loss of control of a DID in cases
+  where an active private key is compromised.
 - An optional mechanism for having collaborating [[ref: witnesses]] approve
   updates to the DID by a [[ref: DID Controller]] before they are distributed.
 - Support for cryptographic agility through versioned specification upgrades,

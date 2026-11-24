@@ -22,9 +22,13 @@ specification.
   - Defines the result of processing a log in which an entry fails
     verification, and uses the `featureNotSupported` error for a `method`
     version the [[ref: Resolver]] does not support.
-  - States that no entry can follow one that sets `updateKeys` to `[]`, and
-    that [[ref: pre-rotation]] is active for an entry only if the
-    `nextKeyHashes` in effect before it is non-empty.
+  - Requires [[ref: key pre-rotation]]. `updateKeys` appears only in the
+    first entry, binding the keys that sign it into the [[ref: SCID]].
+    `nextKeyHashes` is replaced by `prerotationHashes`, required in every
+    entry: each later entry is signed by a key whose hash is in the previous
+    entry's `prerotationHashes`, and a key can sign only one entry. A hash
+    can be listed in several entries, such as for a recovery key. Setting
+    `prerotationHashes` to `[]` stops further updates.
   - Returns `ttl` and the `witness` `threshold` as integers in the DID
     Document Metadata, as now permitted by DID Resolution.
   - Makes retaining a `versionId` from an earlier resolution optional for a

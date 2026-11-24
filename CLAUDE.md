@@ -155,6 +155,15 @@ the review of `spec/` (November 2026).
   normative rule lives in Update (Rotate) → Applying Peer-to-Peer Updates.
 - No `portable` parameter, no parallel did:web, and no DID URL path handling or
   `#files`/`#whois` services — those are left to the DID Controller and not mentioned.
+- **Mandatory key pre-rotation** (November 2026). `updateKeys` only in the first entry
+  (binds the first entry's signer into the SCID — the proof is outside the SCID/entry-hash
+  input, so without it anyone could re-sign entry 1). `nextKeyHashes` → `prerotationHashes`,
+  required in every entry, never inherited. Each later entry is signed by a key whose hash
+  is in the previous entry's `prerotationHashes` and that is not a *used key* (first-entry
+  `updateKeys`, or a key that signed an earlier entry) — resolvers keep that set. A hash
+  may repeat across entries (cold-storage recovery key). `prerotationHashes: []` stops
+  updates. Proof rules unchanged (single/multiple proofs as before). Planned for did:webvh
+  too; "Relationship to did:webvh" says did:vh defines it first.
 - Error names follow did:webvh's camelCase style — still to be aligned with DID
   Resolution's current `INVALID_DID`-style names.
 
@@ -164,9 +173,8 @@ the review of `spec/` (November 2026).
   "Related DID Methods" overview section covering did:scid and did:cel.
 - Explore `src` naming a DID method that stores the log (as did:scid allows), and other
   storage options (DID-Linked Resources, content-addressed storage, registries).
-- Pick up VH Log's planned mandatory key pre-rotation (`updateKeys` removed,
-  `nextKeyHashes` → `prerotationHashes`, `eddsa-jcs-prerotation-2026` cryptosuite) —
-  inline in `spec/`, by reference in `spec-vhlog/`.
+- The `eddsa-jcs-prerotation-2026` cryptosuite (VH Log planned item 2) — not yet in
+  `spec/`; mandatory pre-rotation via `prerotationHashes` is.
 - Move material shared with did:webvh (resolution metadata, witness `did:key` rules) into
   VH Log so `spec-vhlog/` references VH Log rather than did:webvh.
 - Review the error names and the `copies`/`warnings` placement in didResolutionMetadata.
@@ -193,6 +201,10 @@ the review of `spec/` (November 2026).
     `logForked` is a DoS not a takeover; register new DIDs with watchers early; recovery
     = new DID), plus the cross-references from Comparing Copies, Log Freshness and Post
     Quantum Attacks, and the "no version can be relied on" wording.
+  - Mandatory key pre-rotation as now in `spec/` (see Design Decisions). Differs from
+    VH Log's agreed plan: `updateKeys` is kept in the first entry (not removed
+    entirely), a key can sign at most one entry (MUST, with used-key tracking), and a
+    hash may repeat across entries. Also to be made in did:webvh.
   - Already ported to VH-Log's working tree (uncommitted): optional retained
     `versionId` (MAY + MUST compare), `retained-version-not-found` warning-only, and the
     Surveillance paragraph.

@@ -29,9 +29,11 @@ did:vh:QmfGEUAcMpzo25kF2Rhn8L5FAXysfGnkzjwdKoNPi615XQ
 
 Everything else is kept as close to `did:webvh` as makes sense. The
 [[ref: DID Log]] format, [[ref: parameters]], [[ref: SCID]] and entry-hash
-algorithms, key authorization and pre-rotation, [[ref: witnesses]],
-[[ref: watchers]], and the version-selection resolution options are those of
-`did:webvh`. Implementations of `did:webvh` can support `did:vh`
+algorithms, [[ref: witnesses]], [[ref: watchers]], and the
+version-selection resolution options are those of `did:webvh`. Key
+authorization differs in one way: `did:vh` requires [[ref: pre-rotation]], a
+change planned for `did:webvh` as well (see [Relationship to
+`did:webvh`](#relationship-to-didwebvh)). Implementations of `did:webvh` can support `did:vh`
 by replacing the DID-to-HTTPS transformation with the [resolution
 options](#didvh-resolution-options) defined here and dropping the
 web-location-specific features.
@@ -51,8 +53,9 @@ The following is a `tl;dr` summary of how `did:vh` works:
     2. `versionTime` -- as asserted by the [[ref: DID Controller]].
     3. `parameters` -- a set of [[ref: parameters]] that impact the processing
        of the current and future [[ref: log entries]], such as the version of
-       the `did:vh` specification being used, the [[ref: SCID]] and the update
-       key(s).
+       the `did:vh` specification being used, the [[ref: SCID]], the keys
+       that sign the first entry, and the hashes of the
+       [[ref: pre-rotation]] keys that can sign the next entry.
     4. `state` -- the new version of the [[ref: DIDDoc]].
     5. `proof` -- a [[ref: Data Integrity]] proof across the entry, signed by a
        [[ref: DID Controller]]-authorized key.
